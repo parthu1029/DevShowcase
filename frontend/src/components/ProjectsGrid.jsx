@@ -2,7 +2,7 @@ import React, { useMemo, useState } from "react";
 import ProjectCard from "./ProjectCard";
 import SkeletonCard from "./SkeletonCard";
 
-export default function ProjectsGrid({ projects = [], loading = false, onUpvote }) {
+export default function ProjectsGrid({ projects = [], loading = false, onUpvote, onStar, onOpen, user }) {
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState("latest"); // or "top"
 
@@ -12,8 +12,8 @@ export default function ProjectsGrid({ projects = [], loading = false, onUpvote 
       const q = query.toLowerCase();
       res = res.filter(p =>
         p.title.toLowerCase().includes(q) ||
-        p.description.toLowerCase().includes(q) ||
-        (p.tech || []).join(" ").toLowerCase().includes(q)
+        (p.description || "").toLowerCase().includes(q) ||
+        ((p.tech || []).join(" ") + " " + (p.languages || []).join(" ")).toLowerCase().includes(q)
       );
     }
     if (sort === "top") {
@@ -31,7 +31,7 @@ export default function ProjectsGrid({ projects = [], loading = false, onUpvote 
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search projects or tech (e.g. React, Supabase)"
+            placeholder="Search projects or tech (e.g. React, Supabase, JavaScript)"
             className="w-full px-3 py-2 rounded-md bg-background border border-border text-text-primary text-sm focus:ring-2 focus:ring-accent/50"
             aria-label="Search projects"
           />
@@ -65,7 +65,14 @@ export default function ProjectsGrid({ projects = [], loading = false, onUpvote 
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {filtered.map(p => (
-            <ProjectCard key={p.id} project={p} onUpvote={onUpvote} />
+            <ProjectCard
+              key={p.id}
+              project={p}
+              onUpvote={onUpvote}
+              onStar={onStar}
+              onOpen={onOpen}
+              user={user}
+            />
           ))}
         </div>
       )}
