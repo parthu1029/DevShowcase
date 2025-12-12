@@ -42,8 +42,8 @@ export default function App() {
             }
           />
 
-          <Route path="/login" element={<Login onLogin={handleLogin} />} />
-          <Route path="/signup" element={<Signup onLogin={handleLogin} />} />
+          <Route path="/login" element={<Login onLogin={handleLogin} user={user}/>} />
+          <Route path="/signup" element={<Signup onLogin={handleLogin} user={user}/>} />
 
           <Route
             path="/dashboard"

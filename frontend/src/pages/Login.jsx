@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Toast from "../components/Toast";
 
 // try to import supabase client if available
 let supabase = null;
@@ -13,40 +14,52 @@ let supabase = null;
   }
 })();
 
-export default function Login({ onLogin }) {
+export default function Login({ onLogin, user }) {
   const navigate = useNavigate();
+
+  // redirect logged-in users
+  if (user) navigate("/dashboard");
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [toast, setToast] = useState(null);
 
-  // helper for mock fallback
-  const doMockLogin = () => {
-    const user = { id: "mock_user_1", name: email.split("@")[0] || "User", email };
-    onLogin?.(user);
-    navigate("/");
+  function showToast(msg, type = "success") {
+    setToast({ msg, type });
+    setTimeout(() => setToast(null), 1800);
+  }
+
+  const mockLogin = () => {
+    const u = { id: "mock1", email, name: email.split("@")[0] };
+    onLogin?.(u);
+    showToast("Logged in successfully!");
+    setTimeout(() => navigate("/dashboard"), 500);
   };
 
   async function handleSubmit(e) {
-    e?.preventDefault();
-    setError("");
-    if (!email || !password) return setError("Please provide email and password.");
+    e.preventDefault();
+    if (!email || !password) return showToast("Email and password required", "error");
 
-    if (!supabase) {
-      // mock flow for local testing
-      doMockLogin();
-      return;
-    }
+    if (!supabase) return mockLogin();
 
-    setLoading(true);
     try {
-      const { data, error: authErr } = await supabase.auth.signInWithPassword({ email, password });
-      if (authErr) throw authErr;
+      setLoading(true);
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+      if (error) throw error;
+
       const user = data.user;
-      onLogin?.({ id: user.id, email: user.email, name: user.user_metadata?.full_name || user.email });
-      navigate("/");
+      onLogin({
+        id: user.id,
+        email: user.email,
+        name: user.user_metadata?.full_name || user.email,
+      });
+
+      showToast("Welcome back! 🎉");
+      setTimeout(() => navigate("/dashboard"), 600);
     } catch (err) {
-      setError(err.message || "Login failed");
+      showToast(err.message, "error");
     } finally {
       setLoading(false);
     }
@@ -54,65 +67,68 @@ export default function Login({ onLogin }) {
 
   async function handleOAuth(provider) {
     if (!supabase) {
-      // mock oauth
-      onLogin?.({ id: `mock_${provider}`, name: provider, email: `${provider}@example.com` });
-      navigate("/");
-      return;
+      showToast("Mock OAuth login", "success");
+      return mockLogin();
     }
-    setLoading(true);
-    try {
-      // redirect mode
-      const { error: oauthErr } = await supabase.auth.signInWithOAuth({ provider });
-      if (oauthErr) setError(oauthErr.message);
-      // note: signInWithOAuth will redirect — post-login handled by App auth listener
-    } catch (err) {
-      setError(err.message || "OAuth failed");
-    } finally {
-      setLoading(false);
-    }
+    await supabase.auth.signInWithOAuth({ provider });
   }
 
   return (
-    <div className="max-w-md mx-auto py-12">
-      <h1 className="text-2xl font-semibold text-text-primary mb-2">Login</h1>
-      <p className="text-text-secondary mb-6">Sign in to submit, comment, and upvote projects.</p>
+    <div className="flex justify-center pt-20">
+      {toast && <Toast message={toast.msg} type={toast.type} />}
 
-      <div className="space-y-4">
+      <div className="w-full max-w-md bg-background-softer/60 border border-border rounded-xl p-8 shadow-xl backdrop-blur-md">
+        <h1 className="text-2xl font-semibold text-text-primary mb-2">Welcome Back</h1>
+        <p className="text-text-secondary mb-6">Login to continue</p>
+
         <form onSubmit={handleSubmit} className="space-y-4">
-          <label className="block text-sm text-text-primary">Email</label>
-          <input value={email} onChange={(e)=>setEmail(e.target.value)} type="email"
-            className="w-full px-3 py-2 rounded-md bg-background border border-border text-text-primary" />
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            className="w-full px-4 py-2 rounded-md bg-background border border-border text-text-primary"
+          />
 
-          <label className="block text-sm text-text-primary">Password</label>
-          <input value={password} onChange={(e)=>setPassword(e.target.value)} type="password"
-            className="w-full px-3 py-2 rounded-md bg-background border border-border text-text-primary" />
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            className="w-full px-4 py-2 rounded-md bg-background border border-border text-text-primary"
+          />
 
-          {error && <div className="text-xs text-red-400">{error}</div>}
-
-          <div className="flex items-center gap-3">
-            <button type="submit" disabled={loading}
-              className="px-4 py-2 rounded-md bg-accent text-white">
-              {loading ? "Signing in..." : "Sign in"}
-            </button>
-
-            <button type="button" onClick={() => { setEmail(""); setPassword(""); }}
-              className="px-3 py-2 rounded-md bg-background-softer border border-border text-text-primary">
-              Reset
-            </button>
-
-            <div className="ml-auto text-xs text-text-secondary">
-              <a href="/signup" className="underline">Create account</a>
-            </div>
-          </div>
+          <button
+            className="w-full py-2 rounded-md bg-accent text-white font-medium hover:bg-accent/90"
+            disabled={loading}
+          >
+            {loading ? "Logging in..." : "Login"}
+          </button>
         </form>
 
-        <div className="border-t border-border pt-4">
-          <div className="text-xs text-text-secondary mb-2">Or continue with</div>
+        <div className="text-center text-sm text-text-secondary mt-4">
+          Don't have an account?{" "}
+          <a href="/signup" className="text-accent underline">Sign up</a>
+        </div>
+
+        <div className="border-t border-border mt-6 pt-4">
+          <div className="text-center text-xs text-text-secondary mb-3">Or continue with</div>
+
           <div className="flex gap-3">
-            <button onClick={() => handleOAuth("github")} className="flex-1 px-3 py-2 rounded-md bg-background border border-border">GitHub</button>
-            <button onClick={() => handleOAuth("google")} className="flex-1 px-3 py-2 rounded-md bg-background border border-border">Google</button>
+            <button
+              onClick={() => handleOAuth("github")}
+              className="flex-1 py-2 rounded-md bg-background border border-border hover:bg-background-softer"
+            >
+              GitHub
+            </button>
+
+            <button
+              onClick={() => handleOAuth("google")}
+              className="flex-1 py-2 rounded-md bg-background border border-border hover:bg-background-softer"
+            >
+              Google
+            </button>
           </div>
-          {!supabase && <div className="text-xs text-text-secondary mt-2">(Using mock OAuth locally)</div>}
         </div>
       </div>
     </div>
