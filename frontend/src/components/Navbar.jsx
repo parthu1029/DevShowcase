@@ -35,7 +35,7 @@ export default function Navbar({ user, onLogin, onLogout }) {
             <NavLink to="/" className={linkClass}>Home</NavLink>
             <NavLink to="/about" className={linkClass}>About</NavLink>
             {user && <NavLink to="/submit" className={linkClass}>Submit Project</NavLink>}
-            <NavLink to="/explore" className={`${linkClass} hidden md:inline`}>Explore</NavLink>
+            <NavLink to="/explore" className={({ isActive }) => linkClass({ isActive }) + " hidden md:inline"}>Explore</NavLink>
           </nav>
 
           {/* Right: Auth / Avatar */}

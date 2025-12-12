@@ -5,6 +5,12 @@ import { useNavigate } from "react-router-dom";
 export default function ProjectDetailModal({ project, onClose, onUpvote, onStar, user, focusComments }) {
   const navigate = useNavigate();
 
+  function handleClose() {
+    onClose?.();
+    // pop history (go back) so URL returns
+    navigate(-1);
+  }
+
   useEffect(() => {
     function onKey(e) {
       if (e.key === "Escape") handleClose();
@@ -12,12 +18,6 @@ export default function ProjectDetailModal({ project, onClose, onUpvote, onStar,
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
-
-  function handleClose() {
-    onClose?.();
-    // pop history (go back) so URL returns
-    navigate(-1);
-  }
 
   if (!project) return null;
 
