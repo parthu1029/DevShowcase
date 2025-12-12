@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Toast from "../components/Toast";
 
@@ -17,7 +17,10 @@ let supabase = null;
 export default function Signup({ onLogin, user }) {
   const navigate = useNavigate();
 
-  if (user) navigate("/dashboard");
+  useEffect(() => {
+    if (user) navigate("/dashboard");
+  }, [user, navigate]);
+
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");

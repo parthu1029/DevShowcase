@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Toast from "../components/Toast";
 
@@ -18,7 +18,10 @@ export default function Login({ onLogin, user }) {
   const navigate = useNavigate();
 
   // redirect logged-in users
+  useEffect(() => {
   if (user) navigate("/dashboard");
+}, [user, navigate]);
+
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -56,7 +59,7 @@ export default function Login({ onLogin, user }) {
         name: user.user_metadata?.full_name || user.email,
       });
 
-      showToast("Welcome back! 🎉");
+      showToast("Welcome back! ");
       setTimeout(() => navigate("/dashboard"), 600);
     } catch (err) {
       showToast(err.message, "error");
