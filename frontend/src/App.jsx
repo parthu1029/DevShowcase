@@ -29,7 +29,8 @@ export default function App() {
 
       <main className="max-w-5xl mx-auto p-6">
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<Home user={user} />} />
+          <Route path="/projects/:id" element={<Home user={user} />} />
           <Route path="/about" element={<About />} />
 
           <Route

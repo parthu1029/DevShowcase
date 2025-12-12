@@ -15,7 +15,7 @@ const MOCK = [
     votes: 15,
     created_at: "2025-06-20",
     github: "#",
-    preview: ""
+    preview: "https://devshowcase-sooty.vercel.app/"
   },
   {
     id: "p2",
