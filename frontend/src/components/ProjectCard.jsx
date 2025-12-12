@@ -26,7 +26,9 @@ export default function ProjectCard({
   user
 }) {
   const [limit, setLimit] = useState(5); // how many tags to show
-  const [hoverHint, setHoverHint] = useState(null); // {type:'upvote'|'star', text}
+  const [tooltip, setTooltip] = useState(null); 
+  // tooltip: {id: 'star'|'upvote'|'comment', text: 'Login to star', key: timestamp}
+
   const [localStarred, setLocalStarred] = useState(!!project.starred);
   const [localVoted, setLocalVoted] = useState(false);
 
@@ -52,7 +54,7 @@ export default function ProjectCard({
   function handleUpvote(e) {
     e.stopPropagation();
     if (!user) {
-      setHoverHint({ type: "upvote", text: "Login to upvote" });
+      showTooltip("upvote", "Login to upvote" );
       return;
     }
     if (localVoted) return; // optimistic prevention (frontend)
@@ -63,19 +65,24 @@ export default function ProjectCard({
   function handleStar(e) {
     e.stopPropagation();
     if (!user) {
-      setHoverHint({ type: "star", text: "Login to star" });
+      setTooltip("star", "Login to star");
       return;
     }
     setLocalStarred(prev => !prev);
     onStar?.(project.id, !localStarred);
   }
 
+  // helper to show tooltip
+  function showTooltip(id, text) {
+    setTooltip({ id, text, key: Date.now() });
+  }
+
   // hide hint after a short time
   useEffect(() => {
-    if (!hoverHint) return;
-    const t = setTimeout(() => setHoverHint(null), 2000);
-    return () => clearTimeout(t);
-  }, [hoverHint]);
+  if (!tooltip) return;
+  const t = setTimeout(() => setTooltip(null), 800);
+  return () => clearTimeout(t);
+}, [tooltip]);
 
   return (
     <motion.article
@@ -98,35 +105,85 @@ export default function ProjectCard({
 
         <div className="flex flex-col items-end gap-2">
           <div className="flex items-center gap-2">
-            <button
-              onClick={handleStar}
-              onMouseEnter={() => !user && setHoverHint({ type: "star", text: "Login to star" })}
-              onMouseLeave={() => setHoverHint(null)}
-              aria-pressed={localStarred}
-              title={localStarred ? "Unstar" : "Star"}
-              className={`p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-accent/40 ${localStarred ? "bg-accent text-white" : "bg-background text-text-primary border border-border hover:bg-accent/10"}`}
-            >
-              <StarIcon filled={localStarred} />
-            </button>
+            {/* Star button wrapper */}
+            <div className="relative">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (!user) { showTooltip("star", "Login to star"); return; }
+                  handleStar(e);
+                }}
+                onMouseEnter={() => { if (!user) showTooltip("star", "Login to star"); }}
+                onFocus={() => { if (!user) showTooltip("star", "Login to star"); }}
+                aria-pressed={localStarred}
+                title={localStarred ? "Unstar" : "Star"}
+                className={`p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-accent/40 ${localStarred ? "bg-accent text-white" : "bg-background text-text-primary border border-border hover:bg-accent/10"}`}
+              >
+                <StarIcon filled={localStarred} />
+              </button>
 
-            <button
-              onClick={handleUpvote}
-              onMouseEnter={() => !user && setHoverHint({ type: "upvote", text: "Login to upvote" })}
-              onMouseLeave={() => setHoverHint(null)}
-              aria-pressed={localVoted}
-              title="Upvote"
-              className={`p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-accent/40 ${localVoted ? "bg-accent text-white" : "bg-background text-text-primary border border-border hover:bg-accent/10"}`}
-            >
-              <UpvoteIcon />
-            </button>
+              {/* Tooltip anchored to this button */}
+              {tooltip && tooltip.id === "star" && (
+                <motion.div
+                  key={tooltip.key}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 4 }}
+                  className="absolute bottom-full right-0 mb-2 z-50"
+                >
+                  <div className="whitespace-nowrap px-3 py-1 rounded-md text-xs bg-background border border-border text-accent shadow">
+                    {tooltip.text}
+                  </div>
+                </motion.div>
+              )}
+            </div>
 
-            <button
-              onClick={(e) => { e.stopPropagation(); onOpen?.(project.id, { focusComments: true }); }}
-              title="Comments"
-              className="p-2 rounded-md bg-background text-text-primary border border-border hover:bg-background-softer focus:outline-none focus:ring-2 focus:ring-accent/40"
-            >
-              <CommentIcon />
-            </button>
+            {/* Upvote button wrapper */}
+            <div className="relative">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (!user) { showTooltip("upvote", "Login to upvote"); return; }
+                  handleUpvote(e);
+                }}
+                onMouseEnter={() => { if (!user) showTooltip("upvote", "Login to upvote"); }}
+                onFocus={() => { if (!user) showTooltip("upvote", "Login to upvote"); }}
+                aria-pressed={localVoted}
+                title="Upvote"
+                className={`p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-accent/40 ${localVoted ? "bg-accent text-white" : "bg-background text-text-primary border border-border hover:bg-accent/10"}`}
+              >
+                <UpvoteIcon />
+              </button>
+
+              {tooltip && tooltip.id === "upvote" && (
+                <motion.div key={tooltip.key} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 4 }} className="absolute bottom-full right-0 mb-2 z-50">
+                  <div className="whitespace-nowrap px-3 py-1 rounded-md text-xs bg-background border border-border text-accent shadow">
+                    {tooltip.text}
+                  </div>
+                </motion.div>
+              )}
+            </div>
+
+            {/* Comment button wrapper */}
+            <div className="relative">
+              <button
+                onClick={(e) => { e.stopPropagation(); onOpen?.(project.id, { focusComments: true }); }}
+                title="Comments"
+                className="p-2 rounded-md bg-background text-text-primary border border-border hover:bg-background-softer focus:outline-none focus:ring-2 focus:ring-accent/40"
+              >
+                <CommentIcon />
+              </button>
+
+              {/* For comment button we show a tooltip when the user tries to comment but isn't logged in.
+                  Since clicking opens the modal for reading, show tooltip only when user focuses the comment input in modal or if you want: on hover while not logged in. */}
+              {(!user && tooltip && tooltip.id === "comment") && (
+                <motion.div key={tooltip.key} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 4 }} className="absolute bottom-full right-0 mb-2 z-50">
+                  <div className="whitespace-nowrap px-3 py-1 rounded-md text-xs bg-background border border-border text-accent shadow">
+                    {tooltip.text}
+                  </div>
+                </motion.div>
+              )}
+            </div>
           </div>
 
           <div className="text-sm text-text-secondary">
@@ -157,12 +214,6 @@ export default function ProjectCard({
         </div>
       </footer>
 
-      {/* Inline hover/click hint for unauthenticated users */}
-      {hoverHint && (
-        <div className="mt-3 text-xs text-accent bg-background border border-border rounded px-3 py-1 inline-block">
-          {hoverHint.text}
-        </div>
-      )}
     </motion.article>
   );
 }
