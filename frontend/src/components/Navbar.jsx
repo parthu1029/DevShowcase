@@ -146,39 +146,39 @@ export default function Navbar({ user, onLogout }) {
       {mobileOpen && (
         <div ref={mobileMenuRef} className="sm:hidden bg-background-soft border-t border-border">
           <div className="px-2 pt-2 pb-3 space-y-1">
-            {user && <NavLink to="/" onClick={() => setOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-text-secondary hover:bg-background-softer hover:text-text-primary">
+            {user && <NavLink to="/" onClick={() => setMobileOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-text-secondary hover:bg-background-softer hover:text-text-primary">
               Home
             </NavLink>}
 
-            {!user && <NavLink to="/about" onClick={() => setOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-text-secondary hover:bg-background-softer hover:text-text-primary">
+            {!user && <NavLink to="/about" onClick={() => setMobileOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-text-secondary hover:bg-background-softer hover:text-text-primary">
               About
             </NavLink>}
 
             {user && (
-              <NavLink to="/submit" onClick={() => setOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-text-secondary hover:bg-background-softer hover:text-text-primary">
+              <NavLink to="/submit" onClick={() => setMobileOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-text-secondary hover:bg-background-softer hover:text-text-primary">
                 Submit Project
               </NavLink>
             )}
 
-            <NavLink to="/explore" onClick={() => setOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-text-secondary hover:bg-background-softer hover:text-text-primary">
+            <NavLink to="/explore" onClick={() => setMobileOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-text-secondary hover:bg-background-softer hover:text-text-primary">
               Explore
             </NavLink>
 
             {!user ? (
               <>
-                <NavLink to="/login" onClick={() => setOpen(false)} className="block px-3 py-2 rounded-md bg-accent text-white text-base font-medium">
+                <NavLink to="/login" onClick={() => setMobileOpen(false)} className="block px-3 py-2 rounded-md bg-accent text-white text-base font-medium">
                   Login
                 </NavLink>
-                <NavLink to="/signup" onClick={() => setOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-text-secondary hover:bg-background-softer hover:text-text-primary">
+                <NavLink to="/signup" onClick={() => setMobileOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-text-secondary hover:bg-background-softer hover:text-text-primary">
                   Sign Up
                 </NavLink>
               </>
             ) : (
               <>
-                <NavLink to="/profile" onClick={() => setOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-text-secondary hover:bg-background-softer hover:text-text-primary">
+                <NavLink to="/profile" onClick={() => setMobileOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-text-secondary hover:bg-background-softer hover:text-text-primary">
                   Profile
                 </NavLink>
-                <button onClick={() => { handleLogout(); setOpen(false); }} className="w-full text-left px-3 py-2 rounded-md text-text-secondary hover:bg-background-softer">
+                <button onClick={() => { handleLogout(); setMobileOpen(false); }} className="w-full text-left px-3 py-2 rounded-md text-text-secondary hover:bg-background-softer">
                   Logout
                 </button>
               </>
