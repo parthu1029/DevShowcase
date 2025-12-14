@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import Navbar from "./components/Navbar";
 
 import Home from "./pages/Home";
@@ -7,23 +7,20 @@ import About from "./pages/About";
 import Submit from "./pages/Submit";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
-import Dashboard from "./pages/Dashboard";
+import Explore from "./pages/Explore";
 import NotFound from "./pages/NotFound";
 import { supabase } from "./lib/supabaseClient";
 
 function ProtectedRoute({ user, children }) {
-  // If no user, redirect to login
-  if (!user) return <Navigate to="/login" replace />;
-  return children;
+  return user ? children : <Navigate to="/login" replace />;
 }
 
 export default function App() {
-  // Mock auth state; later replace with Supabase session
   const [user, setUser] = useState(null);
   const [loadingUser, setLoadingUser] = useState(true);
 
   useEffect(() => {
-    async function loadUser() {
+    async function loadSession() {
       const { data } = await supabase.auth.getSession();
       const sessionUser = data.session?.user;
 
@@ -31,14 +28,14 @@ export default function App() {
         setUser({
           id: sessionUser.id,
           email: sessionUser.email,
-          name: sessionUser.user_metadata?.full_name || sessionUser.email
+          name: sessionUser.user_metadata?.full_name || sessionUser.email,
         });
       }
 
       setLoadingUser(false);
     }
 
-    loadUser();
+    loadSession();
 
     const {
       data: { subscription },
@@ -48,16 +45,14 @@ export default function App() {
         setUser({
           id: sUser.id,
           email: sUser.email,
-          name: sUser.user_metadata?.full_name || sUser.email
+          name: sUser.user_metadata?.full_name || sUser.email,
         });
       } else {
         setUser(null);
       }
     });
 
-    return () => {
-      subscription.unsubscribe();
-    };
+    return () => subscription.unsubscribe();
   }, []);
 
   if (loadingUser) {
@@ -79,10 +74,19 @@ export default function App() {
 
       <main className="max-w-5xl mx-auto p-6">
         <Routes>
+          {/* Home + Project Modal */}
           <Route path="/" element={<Home user={user} />} />
           <Route path="/projects/:id" element={<Home user={user} />} />
-          <Route path="/about" element={<About />} />
 
+          {/* Basic pages */}
+          <Route path="/about" element={<About />} />
+          <Route path="/explore" element={<Explore user={user} />} />
+
+          {/* Auth pages */}
+          <Route path="/login" element={<Login onLogin={setUser} user={user} />} />
+          <Route path="/signup" element={<Signup onLogin={setUser} user={user} />} />
+
+          {/* Protected Submit Route */}
           <Route
             path="/submit"
             element={
@@ -92,18 +96,7 @@ export default function App() {
             }
           />
 
-          <Route path="/login" element={<Login onLogin={setUser} user={user}/>} />
-          <Route path="/signup" element={<Signup onLogin={setUser} user={user}/>} />
-
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute user={user}>
-                <Dashboard user={user} />
-              </ProtectedRoute>
-            }
-          />
-
+          {/* Not Found */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>

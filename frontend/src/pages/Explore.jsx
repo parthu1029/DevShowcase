@@ -1,0 +1,137 @@
+import { useState, useEffect } from "react";
+import ProjectsGrid from "../components/ProjectsGrid";
+import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
+
+// TEMP: mock data from Home page (later replace with Supabase)
+import { MOCK } from "../mock/projects";  // create a file or reuse Home mock
+
+export default function Explore({ user }) {
+  const [query, setQuery] = useState("");
+  const [sort, setSort] = useState("trending");
+  const [selectedTag, setSelectedTag] = useState(null);
+  const [filtered, setFiltered] = useState([]);
+  const navigate = useNavigate();
+
+  function openProject(id) {
+    navigate(`/projects/${id}`);
+  }
+
+   function handleUpvote(id) {
+    setFiltered((prev) =>
+      prev.map((p) => (p.id === id ? { ...p, votes: (p.votes || 0) + 1 } : p))
+    );
+  }
+
+  function handleStar(id, starred) {
+    setFiltered((prev) =>
+      prev.map((p) => (p.id === id ? { ...p, starred } : p))
+    );
+  }
+
+  const allTags = Array.from(
+    new Set(
+      MOCK.flatMap(p => [...(p.tech || []), ...(p.languages || [])])
+    )
+  ).slice(0, 15);
+
+  useEffect(() => {
+    let results = [...MOCK];
+
+    if (query.trim() !== "") {
+      const q = query.toLowerCase();
+      results = results.filter(p =>
+        p.title.toLowerCase().includes(q) ||
+        p.description.toLowerCase().includes(q) ||
+        (p.author?.name || "").toLowerCase().includes(q)
+      );
+    }
+
+    if (selectedTag) {
+      results = results.filter(p =>
+        (p.tech || []).includes(selectedTag) ||
+        (p.languages || []).includes(selectedTag)
+      );
+    }
+
+    if (sort === "trending") {
+      results.sort((a, b) => (b.votes || 0) - (a.votes || 0));
+    } else if (sort === "newest") {
+      results.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    }
+
+    setFiltered(results);
+  }, [query, sort, selectedTag]);
+
+  return (
+    <div className="pt-4">
+      {/* SEARCH BAR */}
+      <div className="flex justify-center">
+        <div className="w-full max-w-2xl mb-6">
+          <input
+            type="text"
+            placeholder="Search projects…"
+            className="w-full px-5 py-3 text-sm rounded-lg bg-background-softer border border-border text-text-primary focus:outline-none focus:ring-2 focus:ring-accent/40"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+        </div>
+      </div>
+
+      {/* FILTER BAR */}
+      <div className="flex flex-wrap justify-between items-center gap-3 mb-6">
+
+        {/* Sort dropdown */}
+        <select
+          className="px-3 py-2 rounded-md bg-background border border-border text-sm text-text-secondary"
+          value={sort}
+          onChange={(e) => setSort(e.target.value)}
+        >
+          <option value="trending">🔥 Trending</option>
+          <option value="newest">🕒 Newest</option>
+        </select>
+
+        {/* Tag filters */}
+        <div className="flex flex-wrap gap-2">
+          {allTags.map((tag) => (
+            <button
+              key={tag}
+              onClick={() => setSelectedTag(tag === selectedTag ? null : tag)}
+              className={`px-3 py-1 rounded-md text-xs border transition
+                ${selectedTag === tag
+                  ? "bg-accent text-white border-accent"
+                  : "bg-background text-text-secondary border-border hover:bg-background-softer"
+                }
+              `}
+            >
+              {tag}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* RESULTS */}
+      <div>
+        {filtered.length === 0 ? (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center text-text-secondary py-20"
+          >
+            <p className="text-lg">No matching projects found.</p>
+            <p className="text-sm mt-2">Try a different keyword or tag.</p>
+          </motion.div>
+        ) : (
+          <ProjectsGrid
+            projects={filtered}
+            loading={false}
+            onUpvote={handleUpvote} 
+            onStar={handleStar}
+            onOpen={(id) => openProject(id)}
+            user={user}
+          />
+        )}
+      </div>
+    </div>
+  );
+}

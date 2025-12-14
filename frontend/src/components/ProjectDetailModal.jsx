@@ -71,7 +71,7 @@ export default function ProjectDetailModal({ project, onClose, onUpvote, onStar,
     onClose?.();
     // Use history back to return URL state
     try {
-      navigate(-1);
+      navigate("/", { replace: true });
     } catch (err) {
       // fallback: just call onClose
     }

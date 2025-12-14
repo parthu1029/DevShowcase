@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import ProjectsGrid from "../components/ProjectsGrid";
 import ProjectDetailModal from "../components/ProjectDetailModal";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 /* MOCK DATA */
 const MOCK = [
@@ -29,18 +29,18 @@ const MOCK = [
     github: "#",
     preview: ""
   },
-  // add more mock projects here...
 ];
 
-export default function Home() {
+export default function Home({ user }) {
   const [loading, setLoading] = useState(true);
   const [projects, setProjects] = useState([]);
   const [selected, setSelected] = useState(null);
   const [focusComments, setFocusComments] = useState(false);
 
+  const [tab, setTab] = useState("all"); // current tab: all | mine | starred
+
   const location = useLocation();
   const navigate = useNavigate();
-  const params = useParams(); // used for direct nav scenario
 
   // simulate fetch
   useEffect(() => {
@@ -52,73 +52,127 @@ export default function Home() {
     return () => clearTimeout(t);
   }, []);
 
-  // open modal when route /projects/:id present OR when navigate pushes
+  // modal logic
   useEffect(() => {
-    // if URL path matches /projects/:id
     const match = location.pathname.match(/^\/projects\/(.+)$/);
     if (match) {
       const id = match[1];
-      const p = projects.find(x => x.id === id) || MOCK.find(x => x.id === id);
-      if (p) {
-        setSelected(p);
-      } else {
-        // if not found, could fetch from backend later
-        setSelected(null);
-      }
+      const p = projects.find((x) => x.id === id) || MOCK.find((x) => x.id === id);
+      setSelected(p || null);
     } else {
       setSelected(null);
     }
   }, [location.pathname, projects]);
 
-  // local optimistic upvote
+  // upvote
   function handleUpvote(id) {
-    setProjects(prev => prev.map(p => p.id === id ? { ...p, votes: (p.votes||0) + 1 } : p));
-    // later: call Supabase
+    setProjects((prev) =>
+      prev.map((p) =>
+        p.id === id ? { ...p, votes: (p.votes || 0) + 1 } : p
+      )
+    );
   }
 
-  // local star toggling
+  // star
   function handleStar(id, starred) {
-    setProjects(prev => prev.map(p => p.id === id ? { ...p, starred } : p));
+    setProjects((prev) =>
+      prev.map((p) => (p.id === id ? { ...p, starred } : p))
+    );
   }
 
-  // open project modal and push url
+  // open modal
   function handleOpen(id, opts = {}) {
-    const p = projects.find(x => x.id === id);
+    const p = projects.find((x) => x.id === id);
     setSelected(p);
     setFocusComments(!!opts.focusComments);
     navigate(`/projects/${id}`, { state: { modal: true } });
   }
 
   function handleClose() {
-    setSelected(null);
-    setFocusComments(false);
-    // navigate back handled in modal
+    navigate("/");
+  }
+
+  /* FILTER PROJECTS BY TAB */
+  let filteredProjects = projects;
+
+  if (tab === "mine" && user) {
+    filteredProjects = projects.filter(
+      (p) => p.author?.name?.toLowerCase() === user.name?.toLowerCase()
+    );
+  }
+
+  if (tab === "starred" && user) {
+    filteredProjects = projects.filter((p) => p.starred);
   }
 
   return (
-    <div>
+    <div className="pb-10">
+
+      {/* ---------- HEADER ---------- */}
       <header className="mb-6">
         <h1 className="text-3xl font-bold text-text-primary">Project Feed</h1>
-        <p className="text-text-secondary mt-1">Discover community projects — upvote and support interesting work.</p>
+        <p className="text-text-secondary mt-1">
+          Discover community projects — upvote and support interesting work.
+        </p>
+
+        <div className="mt-6 flex gap-4 border-b border-border pb-2">
+          <button
+            onClick={() => setTab("all")}
+            className={`pb-2 px-1 ${
+              tab === "all"
+                ? "text-accent border-b-2 border-accent font-medium"
+                : "text-text-secondary hover:text-text-primary"
+            }`}
+          >
+            All Projects
+          </button>
+
+          {user && (
+            <>
+              <button
+                onClick={() => setTab("mine")}
+                className={`pb-2 px-1 ${
+                  tab === "mine"
+                    ? "text-accent border-b-2 border-accent font-medium"
+                    : "text-text-secondary hover:text-text-primary"
+                }`}
+              >
+                My Projects
+              </button>
+
+              <button
+                onClick={() => setTab("starred")}
+                className={`pb-2 px-1 ${
+                  tab === "starred"
+                    ? "text-accent border-b-2 border-accent font-medium"
+                    : "text-text-secondary hover:text-text-primary"
+                }`}
+              >
+                Starred
+              </button>
+            </>
+          )}
+        </div>
       </header>
 
+      {/* ---------- PROJECT GRID ---------- */}
       <ProjectsGrid
-        projects={projects}
+        projects={filteredProjects}
         loading={loading}
         onUpvote={handleUpvote}
         onStar={handleStar}
         onOpen={handleOpen}
-        user={null} /* pass user state from App when integrating auth */
+        user={user}
       />
 
-      {/* modal shown when selected project is set */}
+      {/* ---------- MODAL ---------- */}
       {selected && (
         <ProjectDetailModal
           project={selected}
           onClose={handleClose}
           onUpvote={handleUpvote}
           onStar={handleStar}
-          user={null}
+          user={user}
           focusComments={focusComments}
         />
       )}
