@@ -1,9 +1,11 @@
 import { useState, useRef, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
+import useTheme from "../hooks/useTheme";
 
 export default function Navbar({ user, onLogout }) {
   const [open, setOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { theme, toggleTheme } = useTheme();
 
   const navigate = useNavigate();
   const menuRef = useRef(null);
@@ -47,12 +49,12 @@ export default function Navbar({ user, onLogout }) {
     }
 
     if (mobileOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener("click", handleClickOutside);
     } else {
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("click", handleClickOutside);
     }
 
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
   }, [mobileOpen]);
 
   return (
@@ -77,6 +79,12 @@ export default function Navbar({ user, onLogout }) {
 
           {/* Right: Auth / Avatar */}
           <div className="flex items-center space-x-3">
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-md bg-background-softer hover:bg-background border border-border"
+            >
+              {theme === "dark" ? "🌙" : "☀️"}
+            </button>
             {!user ? (
               <div className="hidden sm:flex items-center gap-2">
                 <NavLink
@@ -125,12 +133,12 @@ export default function Navbar({ user, onLogout }) {
             {/* Mobile menu button */}
             <div className="sm:hidden flex items-center">
               <button
-                onClick={() => setMobileOpen(prev => !prev)}
+                onClick={(e) => {e.preventDefault(); e.stopPropagation(); setMobileOpen(prev => !prev)}}
                 className="inline-flex items-center justify-center p-2 rounded-md hover:bg-background-softer"
-                aria-expanded={open}
+                aria-expanded={mobileOpen}
               >
                 <svg className="h-6 w-6 text-text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  {open ? (
+                  {mobileOpen ? (
                     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                   ) : (
                     <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />

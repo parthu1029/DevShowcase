@@ -60,7 +60,7 @@ export default function ProjectsGrid({ projects = [], loading = false, onUpvote,
         <div className="py-16 text-center">
           <h3 className="text-text-primary text-2xl font-semibold mb-2">No projects found</h3>
           <p className="text-text-secondary mb-4">Try adjusting your search or be the first to submit a project.</p>
-          <a href="/submit" className="inline-block px-4 py-2 rounded-md bg-accent text-white">Submit Project</a>
+          <a href="/submit" className="inline-block px-4 py-2 rounded-md bg-accent text-[var(--accent-text)]">Submit Project</a>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

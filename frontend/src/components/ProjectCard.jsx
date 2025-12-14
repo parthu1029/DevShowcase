@@ -87,7 +87,7 @@ export default function ProjectCard({
   return (
     <motion.article
       layout
-      whileHover={{ y: -4, boxShadow: "0 12px 30px rgba(0,0,0,0.5)" }}
+      whileHover={{ y: -4, boxShadow: "0 12px 30px var(--shadow-color)" }}
       onClick={() => onOpen?.(project.id)}
       className="cursor-pointer bg-background-softer border border-border rounded-xl p-5 transition-colors focus:outline-none focus:ring-2 focus:ring-accent/40"
       role="button"
@@ -131,7 +131,7 @@ export default function ProjectCard({
                   exit={{ opacity: 0, y: 4 }}
                   className="absolute bottom-full right-0 mb-2 z-50"
                 >
-                  <div className="whitespace-nowrap px-3 py-1 rounded-md text-xs bg-background border border-border text-accent shadow">
+                  <div className="whitespace-nowrap px-3 py-1 rounded-md text-xs bg-background border border-border text-accent shadow-custom">
                     {tooltip.text}
                   </div>
                 </motion.div>

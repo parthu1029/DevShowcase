@@ -20,7 +20,7 @@ export default function About() {
       <div className="space-y-4">
         
         {/* CARD 1 */}
-        <div className="p-4 rounded-xl bg-background-softer border border-border shadow-sm">
+        <div className="p-4 rounded-xl bg-background-softer border border-border shadow-soft">
           <h2 className="text-lg font-semibold text-text-primary mb-1">
             Share Your Projects
           </h2>

@@ -113,7 +113,7 @@ export default function ProjectDetailModal({ project, onClose, onUpvote, onStar,
       >
         {/* translucent backdrop */}
         <motion.div
-          className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+          className="absolute inset-0 bg-[var(--backdrop-overlay)] backdrop-blur-sm"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -136,7 +136,9 @@ export default function ProjectDetailModal({ project, onClose, onUpvote, onStar,
             w-full
             max-h-[96vh]
             overflow-auto
+            shadow-custom
             focus:outline-none
+            bg-background
 
             /* mobile: full screen sheet look */
             rounded-none p-4
@@ -147,7 +149,7 @@ export default function ProjectDetailModal({ project, onClose, onUpvote, onStar,
           `}
           style={{
             // on small screens, fill nearly whole viewport; on larger screens panel is centered with margins
-            boxShadow: "0 20px 60px rgba(2,6,23,0.6)"
+            boxShadow: "0 20px 60px var(--shadow-color)"
           }}
         >
           {/* Close Button (top-right) */}
@@ -207,7 +209,7 @@ export default function ProjectDetailModal({ project, onClose, onUpvote, onStar,
 
                   <div className="space-y-3">
                     {/* Example static comments (replace with dynamic later) */}
-                    <div className="bg-background border border-border rounded p-3">
+                    <div className="bg-background border border-border rounded p-3 shadow-custom">
                       <div className="text-sm text-text-primary font-medium">Anita</div>
                       <div className="text-text-secondary text-sm mt-1">Amazing work — learned a lot from this!</div>
                     </div>
@@ -239,7 +241,7 @@ export default function ProjectDetailModal({ project, onClose, onUpvote, onStar,
               {/* Right column: meta + preview */}
               <aside>
                 <div className="bg-background border border-border rounded p-3">
-                  <div className="text-xs text-text-secondary">Tech & Languages</div>
+                  <div className="text-xs text-text-secondary">Tags</div>
                   <div className="mt-2 flex flex-wrap gap-2">
                     {(project.languages || []).concat(project.tech || []).slice(0, 12).map(t => (
                       <span key={t} className="text-xs px-2 py-1 rounded bg-background text-text-secondary border border-border">{t}</span>
@@ -255,7 +257,7 @@ export default function ProjectDetailModal({ project, onClose, onUpvote, onStar,
                 {project.preview ? (
                   <div className="mt-4 bg-background border border-border rounded p-2">
                     <div className="text-xs text-text-secondary mb-2">Preview</div>
-                    <div className="aspect-video bg-black/30 rounded overflow-hidden">
+                    <div className="aspect-video bg-[var(--background-soft)] rounded overflow-hidden">
                       <iframe src={project.preview} title="preview" className="w-full h-full" />
                     </div>
                   </div>
