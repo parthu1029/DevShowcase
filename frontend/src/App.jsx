@@ -117,10 +117,8 @@ export default function App() {
             }
           />
 
-          <Route
-            path="/profile"
-            element={user ? <Profile user={user} /> : <Navigate to="/login" replace />}
-          />
+          <Route path="/profile/:username" element={<Profile user={user} />} />
+          <Route path="/profile" element={<Navigate to={`/profile/${user?.name}`} replace />} />
 
           {/* Not Found */}
           <Route path="*" element={<NotFound />} />

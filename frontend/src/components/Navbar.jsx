@@ -1,14 +1,19 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 
-export default function Navbar({ user, onLogin, onLogout }) {
+export default function Navbar({ user, onLogout }) {
   const [open, setOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+
   const navigate = useNavigate();
+  const menuRef = useRef(null);
+  const mobileMenuRef = useRef(null);
 
   const handleLogout = () => {
     setOpen(false);
+    setMobileOpen(false);
     onLogout?.();
-    navigate("/");
+    navigate("/explore");
   };
 
   const linkClass = ({ isActive }) =>
@@ -17,6 +22,38 @@ export default function Navbar({ user, onLogin, onLogout }) {
         ? "bg-background-softer text-text-primary"
         : "text-text-secondary hover:bg-background-softer hover:text-text-primary"
     }`;
+
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setOpen(false);
+      }
+    }
+
+    if (open) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [open]);
+
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(e.target)) {
+        setMobileOpen(false);
+      }
+    }
+
+    if (mobileOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [mobileOpen]);
 
   return (
     <header className="bg-background-soft text-text-primary sticky top-0 z-50 border-b border-border">
@@ -57,7 +94,7 @@ export default function Navbar({ user, onLogin, onLogout }) {
               </div>
             ) : (
               <div className="hidden sm:flex items-center gap-3">                
-                <div className="relative">
+                <div className="relative" ref={menuRef}>
                   <button
                     onClick={() => setOpen(prev => !prev)}
                     className="flex items-center gap-2 px-2 py-1 rounded-md hover:bg-background-softer"
@@ -88,7 +125,7 @@ export default function Navbar({ user, onLogin, onLogout }) {
             {/* Mobile menu button */}
             <div className="sm:hidden flex items-center">
               <button
-                onClick={() => setOpen(prev => !prev)}
+                onClick={() => setMobileOpen(prev => !prev)}
                 className="inline-flex items-center justify-center p-2 rounded-md hover:bg-background-softer"
                 aria-expanded={open}
               >
@@ -106,16 +143,16 @@ export default function Navbar({ user, onLogin, onLogout }) {
       </div>
 
       {/* Mobile menu */}
-      {open && (
-        <div className="sm:hidden bg-background-soft border-t border-border">
+      {mobileOpen && (
+        <div ref={mobileMenuRef} className="sm:hidden bg-background-soft border-t border-border">
           <div className="px-2 pt-2 pb-3 space-y-1">
-            <NavLink to="/" onClick={() => setOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-text-secondary hover:bg-background-softer hover:text-text-primary">
+            {user && <NavLink to="/" onClick={() => setOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-text-secondary hover:bg-background-softer hover:text-text-primary">
               Home
-            </NavLink>
+            </NavLink>}
 
-            <NavLink to="/about" onClick={() => setOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-text-secondary hover:bg-background-softer hover:text-text-primary">
+            {!user && <NavLink to="/about" onClick={() => setOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-text-secondary hover:bg-background-softer hover:text-text-primary">
               About
-            </NavLink>
+            </NavLink>}
 
             {user && (
               <NavLink to="/submit" onClick={() => setOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-text-secondary hover:bg-background-softer hover:text-text-primary">
@@ -138,8 +175,8 @@ export default function Navbar({ user, onLogin, onLogout }) {
               </>
             ) : (
               <>
-                <NavLink to="/dashboard" onClick={() => setOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-text-secondary hover:bg-background-softer hover:text-text-primary">
-                  Dashboard
+                <NavLink to="/profile" onClick={() => setOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-text-secondary hover:bg-background-softer hover:text-text-primary">
+                  Profile
                 </NavLink>
                 <button onClick={() => { handleLogout(); setOpen(false); }} className="w-full text-left px-3 py-2 rounded-md text-text-secondary hover:bg-background-softer">
                   Logout
