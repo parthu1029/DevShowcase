@@ -32,8 +32,8 @@ export default function Navbar({ user, onLogin, onLogout }) {
 
           {/* Center: Links */}
           <nav className="hidden sm:flex sm:space-x-4 sm:items-center">
-            <NavLink to="/" className={linkClass}>Home</NavLink>
-            <NavLink to="/about" className={linkClass}>About</NavLink>
+            {user && <NavLink to="/" className={linkClass}>Home</NavLink>}
+            {!user && <NavLink to="/about" className={linkClass}>About</NavLink>}
             {user && <NavLink to="/submit" className={linkClass}>Submit Project</NavLink>}
             <NavLink to="/explore" className={({ isActive }) => linkClass({ isActive }) + " hidden md:inline"}>Explore</NavLink>
           </nav>
@@ -56,11 +56,7 @@ export default function Navbar({ user, onLogin, onLogout }) {
                 </NavLink>
               </div>
             ) : (
-              <div className="hidden sm:flex items-center gap-3">
-                <NavLink to="/dashboard" className="text-sm px-2 py-1 rounded-md hover:bg-background-softer">
-                  Dashboard
-                </NavLink>
-
+              <div className="hidden sm:flex items-center gap-3">                
                 <div className="relative">
                   <button
                     onClick={() => setOpen(prev => !prev)}

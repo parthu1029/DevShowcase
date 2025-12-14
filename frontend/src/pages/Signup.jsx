@@ -18,7 +18,7 @@ export default function Signup({ onLogin, user }) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (user) navigate("/dashboard");
+    if (user) navigate("/home");
   }, [user, navigate]);
 
 
@@ -38,7 +38,7 @@ export default function Signup({ onLogin, user }) {
     const u = { id: "mock2", name, email };
     onLogin?.(u);
     showToast("Account created!");
-    setTimeout(() => navigate("/dashboard"), 500);
+    setTimeout(() => navigate("/home"), 500);
   };
 
   async function handleSubmit(e) {
@@ -69,7 +69,7 @@ export default function Signup({ onLogin, user }) {
       });
 
       showToast("Account created!");
-      setTimeout(() => navigate("/dashboard"), 600);
+      setTimeout(() => navigate("/home"), 600);
     } catch (err) {
       showToast(err.message, "error");
     } finally {

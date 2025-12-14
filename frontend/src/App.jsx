@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import Navbar from "./components/Navbar";
 
 import Home from "./pages/Home";
@@ -8,6 +8,7 @@ import Submit from "./pages/Submit";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Explore from "./pages/Explore";
+import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import { supabase } from "./lib/supabaseClient";
 
@@ -18,6 +19,8 @@ function ProtectedRoute({ user, children }) {
 export default function App() {
   const [user, setUser] = useState(null);
   const [loadingUser, setLoadingUser] = useState(true);
+  const [logoutLoading, setLogoutLoading] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     async function loadSession() {
@@ -55,6 +58,14 @@ export default function App() {
     return () => subscription.unsubscribe();
   }, []);
 
+  if (logoutLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen text-text-secondary text-lg">
+        Logging out…
+      </div>
+    );
+  }
+
   if (loadingUser) {
     return (
       <div className="flex justify-center items-center h-screen text-text-secondary">
@@ -63,9 +74,18 @@ export default function App() {
     );
   }
 
-  async function handleLogout() {
-    await supabase.auth.signOut({ scope: "local" });
-    setUser(null);
+   async function handleLogout() {
+    setLogoutLoading(true);
+
+    try {
+      await supabase.auth.signOut({ scope: "local" });
+      setUser(null);
+      navigate("/explore", { replace: true });
+    } catch (err) {
+      console.error("Logout Error:", err);
+    } finally {
+      setLogoutLoading(false);
+    }
   }
 
   return (
@@ -75,7 +95,8 @@ export default function App() {
       <main className="max-w-5xl mx-auto p-6">
         <Routes>
           {/* Home + Project Modal */}
-          <Route path="/" element={<Home user={user} />} />
+          <Route path="/" element={user ? <Home user={user} /> : <Navigate to="/about" replace />} />
+          <Route path="/home" element={user ? <Home user={user} /> : <Navigate to="/login" replace />}/>
           <Route path="/projects/:id" element={<Home user={user} />} />
 
           {/* Basic pages */}
@@ -94,6 +115,11 @@ export default function App() {
                 <Submit user={user} />
               </ProtectedRoute>
             }
+          />
+
+          <Route
+            path="/profile"
+            element={user ? <Profile user={user} /> : <Navigate to="/login" replace />}
           />
 
           {/* Not Found */}

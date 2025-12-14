@@ -19,7 +19,7 @@ export default function Login({ onLogin, user }) {
 
   // redirect logged-in users
   useEffect(() => {
-  if (user) navigate("/dashboard");
+  if (user) navigate("/home");
 }, [user, navigate]);
 
 
@@ -37,7 +37,7 @@ export default function Login({ onLogin, user }) {
     const u = { id: "mock1", email, name: email.split("@")[0] };
     onLogin?.(u);
     showToast("Logged in successfully!");
-    setTimeout(() => navigate("/dashboard"), 500);
+    setTimeout(() => navigate("/home"), 500);
   };
 
   async function handleSubmit(e) {
@@ -60,7 +60,7 @@ export default function Login({ onLogin, user }) {
       });
 
       showToast("Welcome back! ");
-      setTimeout(() => navigate("/dashboard"), 600);
+      setTimeout(() => navigate("/home"), 600);
     } catch (err) {
       showToast(err.message, "error");
     } finally {

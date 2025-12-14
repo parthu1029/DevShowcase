@@ -11,7 +11,7 @@ const MOCK = [
     description: "A project that detects building changes between satellite images using U-Net and postprocessing.",
     tech: ["PyTorch", "OpenCV", "tensorflow", "numpy", "globe"],
     languages: ["Python"],
-    author: { name: "Anil" },
+    author: { name: "test@abcd.com" },
     votes: 15,
     created_at: "2025-06-20",
     github: "#",
@@ -21,6 +21,7 @@ const MOCK = [
     id: "p2",
     title: "Realtime Chat with Supabase",
     description: "A small chat app using Supabase Realtime and React.",
+    starred:'true',
     tech: ["React", "Tailwind"],
     languages: ["JavaScript"],
     author: { name: "Partha" },
@@ -37,7 +38,7 @@ export default function Home({ user }) {
   const [selected, setSelected] = useState(null);
   const [focusComments, setFocusComments] = useState(false);
 
-  const [tab, setTab] = useState("all"); // current tab: all | mine | starred
+  const [tab, setTab] = useState("mine"); // current tab: mine | starred
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -116,16 +117,7 @@ export default function Home({ user }) {
         </p>
 
         <div className="mt-6 flex gap-4 border-b border-border pb-2">
-          <button
-            onClick={() => setTab("all")}
-            className={`pb-2 px-1 ${
-              tab === "all"
-                ? "text-accent border-b-2 border-accent font-medium"
-                : "text-text-secondary hover:text-text-primary"
-            }`}
-          >
-            All Projects
-          </button>
+          
 
           {user && (
             <>
