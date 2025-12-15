@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import TagInput from "../components/TagInput";
 import { useNavigate } from "react-router-dom";
+import { createProject } from "../lib/api/projects";
 
 const PLATFORMS = ["GitHub", "Kaggle", "Bitbucket", "GitLab", "Other"];
 
@@ -46,39 +47,27 @@ export default function Submit({ user }) {
     }
     setIsSubmitting(true);
 
-    // Build payload - this is exact shape you can store in Supabase later
+    // Build payload for Supabase 'projects' table
+    const platforms = [
+      { name: platform, url: platformUrl.trim() }
+    ];
+    if (showPreview && previewUrl.trim()) {
+      platforms.push({ name: "Preview", url: previewUrl.trim() });
+    }
+
     const payload = {
       title: title.trim(),
       description: description.trim(),
-      platform: platform,
-      platform_url: platformUrl.trim(),
-      preview_url: previewUrl.trim() || null,
-      show_preview: !!showPreview,
-      tags: tags,
-      created_at: new Date().toISOString(),
-      // when wiring Supabase add: user_id, author_name, etc.
+      tech: tags, // you can split into languages/tech later if desired
+      languages: [],
+      platforms
     };
 
     try {
-      // TODO: replace with supabase.from('projects').insert([payload]) when ready
-      console.log("SUBMIT payload:", payload);
-
-      // mock success delay
-      await new Promise((res) => setTimeout(res, 600));
-
-      // simple success behavior: show an inline confirmation and reset / optionally navigate
+      const created = await createProject(payload);
       setIsSubmitting(false);
-      // Option: redirect to Dashboard or to created project route after backend returns id
-      alert("Project submitted (mock). Later this will be persisted to Supabase.");
-      // reset form (optional)
-      setTitle("");
-      setDescription("");
-      setPlatform("GitHub");
-      setPlatformUrl("");
-      setPreviewUrl("");
-      setShowPreview(false);
-      setTags([]);
-      // nav("/"); // uncomment if you want to redirect
+      // Navigate to the project's page (opens modal on Home)
+      nav(`/projects/${created.id}`);
     } catch (err) {
       console.error(err);
       setIsSubmitting(false);

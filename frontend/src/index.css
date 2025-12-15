@@ -3,51 +3,56 @@
 @tailwind utilities;
 
 * {
-  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  /* Keep the smooth transitions */
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-/* DARK THEME (default) */
+/* ------------------------------------ */
+/* DARK THEME (default) - High Contrast & Digital */
+/* ------------------------------------ */
 :root[data-theme='dark'] {
-  --background: #0B0E14;          /* page background */
-  --background-soft: #121726;     /* sections */
-  --background-softer: #181F32;   /* cards / modals */
-  --backdrop-overlay: rgba(10, 12, 20, 0.65);
+  --background: #0D1117;          /* Deep dark blue-grey */
+  --background-soft: #161B22;     /* Sections */
+  --background-softer: #21262D;    /* Cards / Modals - Clear separation */
+  --backdrop-overlay: rgba(13, 17, 23, 0.7);
 
-  --text-primary: #E5E7EB;        /* near-white */
-  --text-secondary: #9CA3AF;      /* muted */
+  --text-primary: #F0F6FC;         /* Near-white, high contrast */
+  --text-secondary: #8B949E;       /* Muted grey */
+  --text-muted: #6E7681;
+
+  --border: #30363D;
+  --border-soft: #384048;
+
+  --accent: #2DCCFF;             /* Vibrant Cyan/Teal */
+  --accent-hover: #00B3E6;
+  --accent-text: #0D1117;          /* Dark text on bright accent for punch */
+
+  /* soft light shadow (using the accent color) */
+  --shadow-color: rgba(45, 204, 255, 0.15);
+}
+
+
+/* ------------------------------------ */
+/* LIGHT THEME - Clean, Professional & High Contrast */
+/* ------------------------------------ */
+:root[data-theme='light'] {
+  --background: #FDFDFD;          /* Very light off-white */
+  --background-soft: #FFFFFF;     /* Sections/Main content */
+  --background-softer: #F0F4F7;   /* Cards/Modals - Subtle contrast */
+  --backdrop-overlay: rgba(253, 253, 253, 0.75);
+
+  --text-primary: #111827;
+  --text-secondary: #4B5563;
   --text-muted: #6B7280;
 
-  --border: #1F2937;
-  --border-soft: #273449;
+  --border: #E5E7EB;
+  --border-soft: #D1D5DB;
 
-  --accent: #6366F1;              /* indigo */
-  --accent-hover: #4F46E5;
+  --accent: #008CBA;             /* Stronger, classic Blue/Cyan */
+  --accent-hover: #007399;
   --accent-text: #ffffff;
 
-  /* soft light shadow */
-  --shadow-color: rgba(99, 102, 241, 0.18);
-}
-
-
-/* LIGHT THEME */
-:root[data-theme='light'] {
-  --background: #F8FAFC;          /* page background */
-  --background-soft: #FFFFFF;     /* sections */
-  --background-softer: #F1F5F9;   /* cards */
-  --backdrop-overlay: rgba(248, 250, 252, 0.75);
-
-  --text-primary: #0F172A;
-  --text-secondary: #475569;
-  --text-muted: #64748B;
-
-  --border: #E2E8F0;
-  --border-soft: #CBD5E1;
-
-  --accent: #2563EB;              /* blue */
-  --accent-hover: #1D4ED8;
-  --accent-text: #ffffff;
-
-  --shadow-color: rgba(15, 23, 42, 0.3);
+  --shadow-color: rgba(0, 140, 186, 0.25);
 }
 
 @layer base {
@@ -58,6 +63,7 @@
 
 @layer utilities {
   .shadow-custom {
-    box-shadow: 0 4px 20px var(--shadow-color);
+    /* Uses a larger spread and slight vertical offset for a modern look */
+    box-shadow: 0 8px 30px -4px var(--shadow-color); 
   }
 }

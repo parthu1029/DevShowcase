@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { getProjects } from "../lib/api/projects"; 
 import { toggleUpvote } from "../lib/api/upvotes";
 import { toggleStar } from "../lib/api/stars";
+import SkeletonCard from "../components/SkeletonCard";
 
 export default function Explore({ user }) {
   const [query, setQuery] = useState("");
@@ -12,6 +13,7 @@ export default function Explore({ user }) {
   const [selectedTag, setSelectedTag] = useState(null);
   const [projects, setProjects] = useState([]);
   const [filtered, setFiltered] = useState([]);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   function openProject(id) {
@@ -50,11 +52,14 @@ export default function Explore({ user }) {
 
   useEffect(() => {
     async function loadData() {
+      setLoading(true);
       try {
         const data = await getProjects();
         setProjects(data);
       } catch (err) {
         console.error("Failed to fetch projects", err);
+      } finally {
+        setLoading(false);
       }
     }
     loadData();
@@ -137,7 +142,11 @@ export default function Explore({ user }) {
 
       {/* RESULTS */}
       <div>
-        {filtered.length === 0 ? (
+        {loading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
+          </div>
+        ) : filtered.length === 0 ? (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
