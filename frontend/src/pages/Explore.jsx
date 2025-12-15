@@ -2,14 +2,13 @@ import { useState, useEffect } from "react";
 import ProjectsGrid from "../components/ProjectsGrid";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-
-// TEMP: mock data from Home page (later replace with Supabase)
-import { MOCK } from "../mock/projects";  // create a file or reuse Home mock
+import { getProjects } from "../lib/api/projects"; 
 
 export default function Explore({ user }) {
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState("trending");
   const [selectedTag, setSelectedTag] = useState(null);
+  const [projects, setProjects] = useState([]);
   const [filtered, setFiltered] = useState([]);
   const navigate = useNavigate();
 
@@ -18,25 +17,43 @@ export default function Explore({ user }) {
   }
 
    function handleUpvote(id) {
-    setFiltered((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, votes: (p.votes || 0) + 1 } : p))
+    setProjects(prev =>
+      prev.map(p =>
+        p.id === id ? { ...p, votes: (p.votes || 0) + 1 } : p
+      )
     );
   }
 
   function handleStar(id, starred) {
-    setFiltered((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, starred } : p))
+    setProjects(prev =>
+      prev.map(p =>
+        p.id === id ? { ...p, starred } : p
+      )
     );
   }
 
   const allTags = Array.from(
     new Set(
-      MOCK.flatMap(p => [...(p.tech || []), ...(p.languages || [])])
+      projects.flatMap(
+        p => [...(p.tech || []), ...(p.languages || [])]
+      )
     )
   ).slice(0, 15);
 
   useEffect(() => {
-    let results = [...MOCK];
+    async function loadData() {
+      try {
+        const data = await getProjects();
+        setProjects(data);
+      } catch (err) {
+        console.error("Failed to fetch projects", err);
+      }
+    }
+    loadData();
+  }, []);
+
+  useEffect(() => {
+    let results = [...projects];
 
     if (query.trim() !== "") {
       const q = query.toLowerCase();
@@ -61,7 +78,7 @@ export default function Explore({ user }) {
     }
 
     setFiltered(results);
-  }, [query, sort, selectedTag]);
+  }, [projects, query, sort, selectedTag]);
 
   return (
     <div className="pt-4">

@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 import ProjectsGrid from "../components/ProjectsGrid";
 import ProjectDetailModal from "../components/ProjectDetailModal";
 import { useLocation, useNavigate } from "react-router-dom";
+import { getProjects } from "../lib/api/projects";
+import { toggleUpvote } from "../lib/api/upvotes";
+import { toggleStar } from "../lib/api/stars";
 
 /* MOCK DATA */
 const MOCK = [
@@ -43,22 +46,27 @@ export default function Home({ user }) {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // simulate fetch
   useEffect(() => {
+  async function load() {
     setLoading(true);
-    const t = setTimeout(() => {
-      setProjects(MOCK);
-      setLoading(false);
-    }, 700);
-    return () => clearTimeout(t);
-  }, []);
+    try {
+      const data = await getProjects();
+      setProjects(data);
+    } catch (err) {
+      console.error("Failed to load projects", err);
+    }
+    setLoading(false);
+  }
+  load();
+}, []);
+
 
   // modal logic
   useEffect(() => {
     const match = location.pathname.match(/^\/projects\/(.+)$/);
     if (match) {
       const id = match[1];
-      const p = projects.find((x) => x.id === id) || MOCK.find((x) => x.id === id);
+      const p = projects.find((x) => x.id === id);
       setSelected(p || null);
     } else {
       setSelected(null);
@@ -66,20 +74,35 @@ export default function Home({ user }) {
   }, [location.pathname, projects]);
 
   // upvote
-  function handleUpvote(id) {
-    setProjects((prev) =>
-      prev.map((p) =>
-        p.id === id ? { ...p, votes: (p.votes || 0) + 1 } : p
-      )
-    );
+  async function handleUpvote(id) {
+    try {
+      const res = await toggleUpvote(id);
+
+      setProjects(prev =>
+        prev.map(p =>
+          p.id === id
+            ? { ...p, votes: p.votes + (res.voted ? 1 : -1) }
+            : p
+        )
+      );
+    } catch (err) {
+      console.error("Upvote failed", err);
+    }
   }
 
+
   // star
-  function handleStar(id, starred) {
-    setProjects((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, starred } : p))
-    );
+  async function handleStar(id) {
+    try {
+      const res = await toggleStar(id);
+      setProjects(prev => prev.map(p =>
+        p.id === id ? { ...p, starred: res.starred } : p
+      ));
+    } catch (err) {
+      console.error("Star action failed", err);
+    }
   }
+
 
   // open modal
   function handleOpen(id, opts = {}) {
@@ -98,12 +121,12 @@ export default function Home({ user }) {
 
   if (tab === "mine" && user) {
     filteredProjects = projects.filter(
-      (p) => p.author?.name?.toLowerCase() === user.name?.toLowerCase()
+      (p) => p.user_id === user.id
     );
   }
 
   if (tab === "starred" && user) {
-    filteredProjects = projects.filter((p) => p.starred);
+    filteredProjects = projects.filter(p => p.has_star);
   }
 
   return (
