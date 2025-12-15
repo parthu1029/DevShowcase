@@ -11,9 +11,31 @@ import Explore from "./pages/Explore";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import { supabase } from "./lib/supabaseClient";
+import { ensureMyProfile } from "./lib/api/profiles";
 
 function ProtectedRoute({ user, children }) {
   return user ? children : <Navigate to="/login" replace />;
+}
+
+function ProfileRedirect() {
+  const navigate = useNavigate();
+  useEffect(() => {
+    (async () => {
+      try {
+        const prof = await ensureMyProfile();
+        const username = prof?.username;
+        if (username) navigate(`/profile/${username}`, { replace: true });
+        else navigate("/explore", { replace: true });
+      } catch (err) {
+        navigate("/login", { replace: true });
+      }
+    })();
+  }, [navigate]);
+  return (
+    <div className="flex justify-center items-center h-40 text-text-secondary">
+      Loading profile…
+    </div>
+  );
 }
 
 export default function App() {
@@ -118,7 +140,14 @@ export default function App() {
           />
 
           <Route path="/profile/:username" element={<Profile user={user} />} />
-          <Route path="/profile" element={<Navigate to={`/profile/${user?.name}`} replace />} />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute user={user}>
+                <ProfileRedirect />
+              </ProtectedRoute>
+            }
+          />
 
           {/* Not Found */}
           <Route path="*" element={<NotFound />} />

@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import ProjectsGrid from "../components/ProjectsGrid";
 import { MOCK } from "../mock/projects"; // Your mock until Supabase data
 import NotFound from "./NotFound";
+import { getProfile, updateProfile } from "../lib/api/profiles";
 
 const RESERVED = new Set([
   "about",
@@ -22,8 +23,10 @@ export default function Profile({ user }) {
 
   const [profileUser, setProfileUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
  // modal state
   const [editOpen, setEditOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
   // editable form fields
   const [form, setForm] = useState({
     name: "",
@@ -40,28 +43,36 @@ export default function Profile({ user }) {
     async function loadUser() {
       setLoading(true);
 
-      // MOCK EXAMPLE — REPLACE with Supabase:
-      const found = {
-        name: username,
-        email: `${username}@example.com`,
-        id: username, 
-        bio: "Developer who loves building cool things.",
-      };
-
-      setProfileUser(found);
-      setLoading(false);
-
-      setForm({
-        name: found.name,
-        email: found.email,
-        bio: found.bio,
-      });
+      // Load from Supabase profiles API
+      try {
+        setError(null);
+        const data = await getProfile(username);
+        const mapped = {
+          id: data.id,
+          username: data.username,
+          name: data.full_name || data.username,
+          email: data.email || "",
+          bio: data.bio || "",
+          avatar_url: data.avatar_url || null,
+        };
+        setProfileUser(mapped);
+        setForm({
+          name: mapped.name,
+          email: mapped.email,
+          bio: mapped.bio,
+        });
+      } catch (err) {
+        setError(err?.message || "Failed to load profile");
+        setProfileUser(null);
+      } finally {
+        setLoading(false);
+      }
     }
 
     loadUser();
   }, [username]);
 
-  if (loading || !profileUser) {
+  if (loading) {
     return (
       <div className="flex justify-center items-center h-40 text-text-secondary">
         Loading profile…
@@ -69,7 +80,15 @@ export default function Profile({ user }) {
     );
   }
 
-  const isOwner = user?.name?.toLowerCase() === profileUser.name.toLowerCase();
+  if (error) {
+    return <NotFound />;
+  }
+
+  if (!profileUser) {
+    return <NotFound />;
+  }
+
+  const isOwner = user?.id && profileUser?.id && user.id === profileUser.id;
 
   const userProjects = MOCK.filter(
     (p) => p.author?.name?.toLowerCase() === profileUser.name.toLowerCase()
@@ -194,13 +213,39 @@ export default function Profile({ user }) {
                 </button>
 
                 <button
-                  onClick={() => {
-                    setProfileUser({ ...profileUser, ...form });
-                    setEditOpen(false);
+                  onClick={async () => {
+                    if (saving) return;
+                    setSaving(true);
+                    try {
+                      const updated = await updateProfile({
+                        full_name: form.name,
+                        bio: form.bio,
+                      });
+                      const mapped = {
+                        id: updated.id,
+                        username: updated.username,
+                        name: updated.full_name || updated.username,
+                        email: updated.email || "",
+                        bio: updated.bio || "",
+                        avatar_url: updated.avatar_url || null,
+                      };
+                      setProfileUser(mapped);
+                      setForm({
+                        name: mapped.name,
+                        email: mapped.email,
+                        bio: mapped.bio,
+                      });
+                      setEditOpen(false);
+                    } catch (err) {
+                      alert(err?.message || "Failed to update profile");
+                    } finally {
+                      setSaving(false);
+                    }
                   }}
+                  disabled={saving}
                   className="px-4 py-2 rounded-md bg-accent text-[var(--accent-text)] hover:bg-accent-hover"
                 >
-                  Save
+                  {saving ? "Saving..." : "Save"}
                 </button>
               </div>
             </motion.div>
