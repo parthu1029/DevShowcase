@@ -1,81 +1,133 @@
 import React from "react";
 import { motion } from "framer-motion";
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 20 },
+  show: (i = 1) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: i * 0.15, duration: 0.5, ease: "easeOut" }
+  })
+};
+
+const card = {
+  hidden: { opacity: 0, y: 25 },
+  show: (i = 1) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: i * 0.15, duration: 0.45 }
+  })
+};
+
 export default function About() {
   return (
-    <div className="max-w-3xl mx-auto pt-6 pb-12">
-      
-      {/* Page Header */}
-      <h1 className="text-3xl font-bold text-text-primary mb-3 tracking-tight">
+    <div className="max-w-4xl mx-auto pt-10 pb-20">
+
+      {/* Heading */}
+      <motion.h1
+        variants={fadeUp}
+        initial="hidden"
+        animate="show"
+        className="text-4xl font-bold text-text-primary mb-4 tracking-tight"
+      >
         About DevShowcase
-      </h1>
+      </motion.h1>
 
-      <p className="text-text-secondary leading-relaxed mb-8">
-        DevShowcase is a community-driven platform where developers share what
-        they build, discover new ideas, get inspired, and grow as creators.
-        Whether you're learning, experimenting, or launching real products —
-        this is your space to showcase your craft.
-      </p>
+      <motion.p
+        variants={fadeUp}
+        initial="hidden"
+        animate="show"
+        custom={2}
+        className="text-text-secondary text-lg leading-relaxed mb-10"
+      >
+        DevShowcase is a community-powered hub where developers publish the
+        projects they build, discover new ideas, get feedback, and grow their
+        identity as creators. Inspired by the minimal, elegant design language
+        of GitHub and Vercel, DevShowcase puts your work at the center.
+      </motion.p>
 
-      {/* Feature Sections */}
-      <div className="space-y-4">
-        
+      {/* Feature Section */}
+      <div className="space-y-6">
+
         {/* CARD 1 */}
-        <div className="p-4 rounded-xl bg-background-softer border border-border shadow-soft">
-          <h2 className="text-lg font-semibold text-text-primary mb-1">
-            Share Your Projects
+        <motion.div
+          variants={card}
+          initial="hidden"
+          animate="show"
+          className="p-6 rounded-xl bg-background-softer border border-border shadow-soft hover:shadow-md transition-shadow duration-300"
+        >
+          <h2 className="text-xl font-semibold text-text-primary mb-2">
+            🚀 Share Beautifully
           </h2>
-
-          <p className="text-text-secondary text-sm leading-relaxed">
-            Publish your work — web apps, AI tools, automations, experiments,
-            or anything you create. Present it cleanly with previews, tags,
-            descriptions, and GitHub links.
+          <p className="text-text-secondary leading-relaxed">
+            Publish your projects with clean presentation, live previews, and
+            rich metadata. From AI tools to web apps — show the world what
+            you're building.
           </p>
-        </div>
+        </motion.div>
 
         {/* CARD 2 */}
-        <div className="p-4 rounded-xl bg-background-softer border border-border shadow-sm">
-          <h2 className="text-lg font-semibold text-text-primary mb-1">
-            Get Feedback & Support
+        <motion.div
+          variants={card}
+          initial="hidden"
+          animate="show"
+          custom={2}
+          className="p-6 rounded-xl bg-background-softer border border-border shadow-soft hover:shadow-md transition-shadow duration-300"
+        >
+          <h2 className="text-xl font-semibold text-text-primary mb-2">
+            ⭐ Get Real Feedback
           </h2>
-
-          <p className="text-text-secondary text-sm leading-relaxed">
-            The community can star your projects, upvote ideas, and leave
-            comments. Great projects deserve visibility — DevShowcase helps you
-            reach people who appreciate your work.
+          <p className="text-text-secondary leading-relaxed">
+            Developers can star, upvote, and comment on your projects. Learn
+            from the community, iterate faster, and build smarter.
           </p>
-        </div>
+        </motion.div>
 
         {/* CARD 3 */}
-        <div className="p-4 rounded-xl bg-background-softer border border-border shadow-sm">
-          <h2 className="text-lg font-semibold text-text-primary mb-1">
-            Grow as a Developer
+        <motion.div
+          variants={card}
+          initial="hidden"
+          animate="show"
+          custom={3}
+          className="p-6 rounded-xl bg-background-softer border border-border shadow-soft hover:shadow-md transition-shadow duration-300"
+        >
+          <h2 className="text-xl font-semibold text-text-primary mb-2">
+            📈 Grow Your Developer Identity
           </h2>
-
-          <p className="text-text-secondary text-sm leading-relaxed">
-            Every project you publish reflects your journey. Build your
-            developer identity, track progress, learn from others, and stay
-            motivated to create. DevShowcase is your personal launchpad.
+          <p className="text-text-secondary leading-relaxed">
+            Your profile becomes a living portfolio — track your progress,
+            showcase achievements, and build trust with teams or clients.
           </p>
-        </div>
+        </motion.div>
 
-        {/* CARD 4 (optional, looks professional) */}
-        <div className="p-4 rounded-xl bg-background-softer border border-border shadow-sm">
-          <h2 className="text-lg font-semibold text-text-primary mb-1">
-            Powered by Modern Tools
+        {/* CARD 4 */}
+        <motion.div
+          variants={card}
+          initial="hidden"
+          animate="show"
+          custom={4}
+          className="p-6 rounded-xl bg-background-softer border border-border shadow-soft hover:shadow-md transition-shadow duration-300"
+        >
+          <h2 className="text-xl font-semibold text-text-primary mb-2">
+            ⚙️ Built With Modern Tools
           </h2>
-
-          <p className="text-text-secondary text-sm leading-relaxed">
-            Built using React, TailwindCSS, Supabase, and Framer Motion —
-            delivering a smooth, fast, minimal experience inspired by GitHub
-            and Vercel&apos;s clean aesthetic.
+          <p className="text-text-secondary leading-relaxed">
+            Powered by React, TailwindCSS, Supabase, and Framer Motion — designed
+            for performance, clarity, and developer friendliness.
           </p>
-        </div>
+        </motion.div>
       </div>
 
-      {/* Footer Text */}
-      <p className="text-center text-text-secondary text-sm mt-10 opacity-60">
-        Made by Partha. Keep building. 🚀
-      </p>
+      {/* Footer */}
+      <motion.p
+        variants={fadeUp}
+        initial="hidden"
+        animate="show"
+        custom={6}
+        className="text-center text-text-secondary text-sm mt-14 opacity-70"
+      >
+        Made by Partha — Keep building. 🚀
+      </motion.p>
     </div>
   );
 }
