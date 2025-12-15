@@ -60,7 +60,7 @@ Built for the **Zer01coded Web Challenge — React + Supabase Track**.
 | Styling    | TailwindCSS                        |
 | Animations | Framer Motion                      |
 | Backend    | Supabase (Auth + PostgreSQL + RLS) |
-| Deployment | Vercel (recommended)               |
+| Deployment | Vercel                             |
 
 ---
 
