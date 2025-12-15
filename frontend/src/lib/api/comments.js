@@ -21,12 +21,25 @@ export async function getComments(project_id) {
   const { data, error } = await supabase
     .from("comments")
     .select(`
-      *,
-      profiles(username)
+      id,
+      content,
+      created_at,
+      user_id,
+      project_id,
+      profiles (
+        id,
+        username,
+        avatar_url
+      )
     `)
     .eq("project_id", project_id)
-    .order("created_at", { ascending: true });
+    .order("created_at", { ascending: false }); // Show newest first
 
-  if (error) throw error;
-  return data;
+  if (error) {
+    console.error("Error fetching comments:", error);
+    throw error;
+  }
+  
+  console.log("Fetched comments:", data);
+  return data || [];
 }

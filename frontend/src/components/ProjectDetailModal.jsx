@@ -1,7 +1,9 @@
-import React, { useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import { X, MessageSquare, ThumbsUp, Star, Send } from "lucide-react";
+import { addComment, getComments } from "../lib/api/comments";
 
 export default function ProjectDetailModal({ project, onClose, onUpvote, onStar, user, focusComments }) {
   const navigate = useNavigate();
@@ -9,6 +11,10 @@ export default function ProjectDetailModal({ project, onClose, onUpvote, onStar,
   const modalRef = useRef(null);
   const lastActiveRef = useRef(null);
   const commentInputRef = useRef(null);
+  const [showComments, setShowComments] = useState(false);
+  const [comments, setComments] = useState([]);
+  const [newComment, setNewComment] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     // Save last focused element so we can restore focus on close
@@ -82,6 +88,56 @@ export default function ProjectDetailModal({ project, onClose, onUpvote, onStar,
       handleClose();
     }
   }
+
+  // Toggle comments section
+  const toggleComments = async () => {
+    const shouldFetch = !showComments;
+    setShowComments(!showComments);
+    
+    if (shouldFetch && project?.id) {
+      await fetchComments();
+    }
+  };
+
+  // Fetch comments for the current project
+  const fetchComments = async () => {
+    if (!project?.id) return;
+    
+    try {
+      console.log('Fetching comments for project:', project.id);
+      const commentsData = await getComments(project.id);
+      console.log('Received comments:', commentsData);
+      setComments(commentsData);
+    } catch (err) {
+      console.error("Failed to fetch comments:", err);
+      // Optionally show an error message to the user
+    }
+  };
+
+  // Handle comment submission
+  const handleAddComment = async (e) => {
+    e.preventDefault();
+    if (!newComment.trim() || isSubmitting || !project?.id) return;
+    
+    setIsSubmitting(true);
+    
+    try {
+      // Add the comment
+      await addComment(project.id, newComment.trim());
+      
+      // Clear the input
+      setNewComment("");
+      
+      // Refresh the comments list from the server
+      await fetchComments();
+      
+    } catch (err) {
+      console.error("Failed to add comment:", err);
+      alert(`Failed to add comment: ${err.message || 'Please try again.'}`);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   if (!project) return null;
 
@@ -209,30 +265,64 @@ export default function ProjectDetailModal({ project, onClose, onUpvote, onStar,
 
                   <div className="space-y-3">
                     {/* Example static comments (replace with dynamic later) */}
-                    <div className="bg-background border border-border rounded p-3 shadow-custom">
-                      <div className="text-sm text-text-primary font-medium">Anita</div>
-                      <div className="text-text-secondary text-sm mt-1">Amazing work — learned a lot from this!</div>
-                    </div>
+                    {comments.length === 0 ? (
+                      <div className="text-center py-4 text-text-secondary">
+                        No comments yet. Be the first to comment!
+                      </div>
+                    ) : (
+                      comments.map(comment => (
+                        <div key={comment.id} className="bg-background border border-border rounded p-3 shadow-custom">
+                          <div className="flex items-center gap-2">
+                            {comment.profiles?.avatar_url && (
+                              <img 
+                                src={comment.profiles.avatar_url} 
+                                alt={comment.profiles.username || 'User'}
+                                className="w-6 h-6 rounded-full"
+                              />
+                            )}
+                            <div className="text-sm font-medium text-text-primary">
+                              {comment.profiles?.username || 'Anonymous'}
+                            </div>
+                            <span className="text-xs text-text-secondary">
+                              • {new Date(comment.created_at).toLocaleString()}
+                            </span>
+                          </div>
+                          <div className="mt-2 text-text-secondary text-sm">
+                            {comment.content}
+                          </div>
+                        </div>
+                      ))
+                    )}
 
                     {/* comment input */}
                     <div>
-                      <textarea
-                        ref={commentInputRef}
-                        className="w-full min-h-[90px] p-3 rounded-md bg-background border border-border text-text-primary"
-                        placeholder={user ? "Write a comment..." : "Login to comment"}
-                        disabled={!user}
-                        aria-disabled={!user}
-                      />
-                      <div className="mt-2 flex items-center justify-between">
-                        {!user ? (
-                          <div className="text-xs text-accent">Login to add a comment</div>
-                        ) : (
-                          <div className="flex items-center gap-2">
-                            <button className="px-3 py-1 rounded bg-accent text-white">Post comment</button>
-                          </div>
-                        )}
-                        <div className="text-xs text-text-secondary">Comments are public</div>
-                      </div>
+                      <form onSubmit={handleAddComment}>
+                        <textarea
+                          ref={commentInputRef}
+                          value={newComment}
+                          onChange={(e) => setNewComment(e.target.value)}
+                          className="w-full min-h-[90px] p-3 rounded-md bg-background border border-border text-text-primary"
+                          placeholder={user ? "Write a comment..." : "Login to comment"}
+                          disabled={!user}
+                          aria-disabled={!user}
+                        />
+                        <div className="mt-2 flex items-center justify-between">
+                          {!user ? (
+                            <div className="text-xs text-accent">Login to add a comment</div>
+                          ) : (
+                            <div className="flex items-center gap-2">
+                              <button 
+                                className={`px-3 py-1 rounded text-white ${isSubmitting ? 'bg-accent/50' : 'bg-accent hover:bg-accent/90'}`} 
+                                type="submit"
+                                disabled={isSubmitting}
+                              >
+                                {isSubmitting ? 'Posting...' : 'Post comment'}
+                              </button>
+                            </div>
+                          )}
+                          <div className="text-xs text-text-secondary">Comments are public</div>
+                        </div>
+                      </form>
                     </div>
                   </div>
                 </div>
