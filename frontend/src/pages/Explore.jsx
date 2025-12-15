@@ -3,6 +3,8 @@ import ProjectsGrid from "../components/ProjectsGrid";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { getProjects } from "../lib/api/projects"; 
+import { toggleUpvote } from "../lib/api/upvotes";
+import { toggleStar } from "../lib/api/stars";
 
 export default function Explore({ user }) {
   const [query, setQuery] = useState("");
@@ -16,20 +18,26 @@ export default function Explore({ user }) {
     navigate(`/projects/${id}`);
   }
 
-   function handleUpvote(id) {
-    setProjects(prev =>
-      prev.map(p =>
-        p.id === id ? { ...p, votes: (p.votes || 0) + 1 } : p
-      )
-    );
+  async function handleUpvote(id) {
+    try {
+      const res = await toggleUpvote(id);
+      setProjects(prev => prev.map(p =>
+        p.id === id ? { ...p, votes: (p.votes || 0) + (res.voted ? 1 : -1), voted: res.voted } : p
+      ));
+    } catch (err) {
+      console.error("Upvote failed", err);
+    }
   }
 
-  function handleStar(id, starred) {
-    setProjects(prev =>
-      prev.map(p =>
-        p.id === id ? { ...p, starred } : p
-      )
-    );
+  async function handleStar(id) {
+    try {
+      const res = await toggleStar(id);
+      setProjects(prev => prev.map(p =>
+        p.id === id ? { ...p, starred: res.starred } : p
+      ));
+    } catch (err) {
+      console.error("Star action failed", err);
+    }
   }
 
   const allTags = Array.from(

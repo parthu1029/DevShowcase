@@ -30,7 +30,9 @@ export default function ProjectCard({
   // tooltip: {id: 'star'|'upvote'|'comment', text: 'Login to star', key: timestamp}
 
   const [localStarred, setLocalStarred] = useState(!!project.starred);
-  const [localVoted, setLocalVoted] = useState(false);
+  const [localVoted, setLocalVoted] = useState(!!project.voted);
+  const [upvotePending, setUpvotePending] = useState(false);
+  const [starPending, setStarPending] = useState(false);
 
   // derive tags: prefer languages first then tech; combine and dedupe
   const languages = project.languages || []; // expected array
@@ -50,26 +52,35 @@ export default function ProjectCard({
     return () => window.removeEventListener("resize", update);
   }, []);
 
+  // keep local toggles in sync with incoming props
+  useEffect(() => { setLocalStarred(!!project.starred); }, [project.starred]);
+  useEffect(() => { setLocalVoted(!!project.voted); }, [project.voted]);
+
   // handlers
-  function handleUpvote(e) {
+  async function handleUpvote(e) {
     e.stopPropagation();
-    if (!user) {
-      showTooltip("upvote", "Login to upvote" );
-      return;
+    if (!user) { showTooltip("upvote", "Login to upvote"); return; }
+    if (upvotePending) return;
+    setUpvotePending(true);
+    setLocalVoted(v => !v);
+    try {
+      await onUpvote?.(project.id);
+    } finally {
+      setUpvotePending(false);
     }
-    if (localVoted) return; // optimistic prevention (frontend)
-    setLocalVoted(true);
-    onUpvote?.(project.id);
   }
 
-  function handleStar(e) {
+  async function handleStar(e) {
     e.stopPropagation();
-    if (!user) {
-      setTooltip("star", "Login to star");
-      return;
+    if (!user) { showTooltip("star", "Login to star"); return; }
+    if (starPending) return;
+    setStarPending(true);
+    setLocalStarred(s => !s);
+    try {
+      await onStar?.(project.id);
+    } finally {
+      setStarPending(false);
     }
-    setLocalStarred(prev => !prev);
-    onStar?.(project.id, !localStarred);
   }
 
   // helper to show tooltip
@@ -108,15 +119,12 @@ export default function ProjectCard({
             {/* Star button wrapper */}
             <div className="relative">
               <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (!user) { showTooltip("star", "Login to star"); return; }
-                  handleStar(e);
-                }}
+                onClick={handleStar}
                 onMouseEnter={() => { if (!user) showTooltip("star", "Login to star"); }}
                 onFocus={() => { if (!user) showTooltip("star", "Login to star"); }}
                 aria-pressed={localStarred}
                 title={localStarred ? "Unstar" : "Star"}
+                disabled={starPending}
                 className={`p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-accent/40 ${localStarred ? "bg-accent text-white" : "bg-background text-text-primary border border-border hover:bg-accent/10"}`}
               >
                 <StarIcon filled={localStarred} />
@@ -141,15 +149,12 @@ export default function ProjectCard({
             {/* Upvote button wrapper */}
             <div className="relative">
               <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (!user) { showTooltip("upvote", "Login to upvote"); return; }
-                  handleUpvote(e);
-                }}
+                onClick={handleUpvote}
                 onMouseEnter={() => { if (!user) showTooltip("upvote", "Login to upvote"); }}
                 onFocus={() => { if (!user) showTooltip("upvote", "Login to upvote"); }}
                 aria-pressed={localVoted}
                 title="Upvote"
+                disabled={upvotePending}
                 className={`p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-accent/40 ${localVoted ? "bg-accent text-white" : "bg-background text-text-primary border border-border hover:bg-accent/10"}`}
               >
                 <UpvoteIcon />

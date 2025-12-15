@@ -12,20 +12,38 @@ export async function createProject(project) {
 }
 
 export async function getProjects() {
-  try{
-    const { data, error } = await supabase
+  try {
+    const { data: auth } = await supabase.auth.getUser();
+    const userId = auth?.user?.id || null;
+
+    const { data: projects, error: pErr } = await supabase
       .from("projects")
-      .select("*")
+      .select(`
+        *,
+        profiles:profiles(username, avatar_url)
+      `)
       .order("created_at", { ascending: false });
+    if (pErr) throw pErr;
 
-    if (error){
-      console.error("SUPABASE ERROR:", error);
-      throw error;}
+    let starSet = new Set();
+    let voteSet = new Set();
 
-    return data.map(p => ({
+    if (userId) {
+      const [{ data: stars, error: sErr }, { data: votes, error: vErr }] = await Promise.all([
+        supabase.from("project_stars").select("project_id").eq("user_id", userId),
+        supabase.from("project_upvotes").select("project_id").eq("user_id", userId)
+      ]);
+      if (sErr) throw sErr;
+      if (vErr) throw vErr;
+      starSet = new Set(stars?.map((r) => r.project_id) || []);
+      voteSet = new Set(votes?.map((r) => r.project_id) || []);
+    }
+
+    return (projects || []).map((p) => ({
       ...p,
-      author_name: p.profiles?.username || "Unknown",
-      has_star: p.stars?.some(s => s.user_id === supabase.auth.user()?.id)
+      author: { name: p.profiles?.username || "Unknown", avatar_url: p.profiles?.avatar_url },
+      starred: starSet.has(p.id),
+      voted: voteSet.has(p.id)
     }));
   } catch (err) {
     console.error("API FAILED:", err);

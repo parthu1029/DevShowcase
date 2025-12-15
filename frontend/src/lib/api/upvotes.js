@@ -32,27 +32,49 @@ export async function removeUpvote(project_id) {
 
 
 export async function toggleUpvote(projectId) {
-  const user = (await supabase.auth.getUser()).data.user;
+  const { data: auth } = await supabase.auth.getUser();
+  const user = auth?.user;
+  if (!user) throw new Error("Not logged in");
 
-  const { data: existing } = await supabase
+  // find existing upvote (avoid .single() error when 0 rows)
+  const { data: rows, error: selErr } = await supabase
     .from("project_upvotes")
-    .select("*")
+    .select("id")
     .eq("user_id", user.id)
     .eq("project_id", projectId)
-    .single();
+    .limit(1);
+  if (selErr) throw selErr;
+  const existing = rows && rows[0];
 
+  let voted;
   if (existing) {
-    await supabase
+    const { error: delErr } = await supabase
       .from("project_upvotes")
       .delete()
       .eq("id", existing.id);
-
-    return { voted: false };
+    if (delErr) throw delErr;
+    voted = false;
+  } else {
+    const { error: insErr } = await supabase
+      .from("project_upvotes")
+      .insert({ user_id: user.id, project_id: projectId });
+    if (insErr) throw insErr;
+    voted = true;
   }
 
-  await supabase
-    .from("project_upvotes")
-    .insert({ user_id: user.id, project_id: projectId });
+  // update cached vote count on project (best-effort)
+  const { data: proj, error: projErr } = await supabase
+    .from("projects")
+    .select("votes")
+    .eq("id", projectId)
+    .single();
+  if (!projErr && proj) {
+    const next = Math.max(0, (proj.votes || 0) + (voted ? 1 : -1));
+    await supabase
+      .from("projects")
+      .update({ votes: next })
+      .eq("id", projectId);
+  }
 
-  return { voted: true };
+  return { voted };
 }

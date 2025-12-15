@@ -30,30 +30,34 @@ export async function unstarProject(project_id) {
 
 
 export async function toggleStar(projectId) {
-  const user = (await supabase.auth.getUser()).data.user;
+  const { data: auth } = await supabase.auth.getUser();
+  const user = auth?.user;
+  if (!user) throw new Error("Not logged in");
 
-  // check if exists
-  const { data: existing } = await supabase
+  // check if exists (avoid .single() error when 0 rows)
+  const { data: rows, error: selErr } = await supabase
     .from("project_stars")
-    .select("*")
+    .select("id")
     .eq("user_id", user.id)
     .eq("project_id", projectId)
-    .single();
+    .limit(1);
+  if (selErr) throw selErr;
+  const existing = rows && rows[0];
 
   if (existing) {
     // remove star
-    await supabase
+    const { error: delErr } = await supabase
       .from("project_stars")
       .delete()
       .eq("id", existing.id);
-
+    if (delErr) throw delErr;
     return { starred: false };
   }
 
   // add star
-  await supabase
+  const { error: insErr } = await supabase
     .from("project_stars")
     .insert({ user_id: user.id, project_id: projectId });
-
+  if (insErr) throw insErr;
   return { starred: true };
 }

@@ -81,7 +81,7 @@ export default function Home({ user }) {
       setProjects(prev =>
         prev.map(p =>
           p.id === id
-            ? { ...p, votes: p.votes + (res.voted ? 1 : -1) }
+            ? { ...p, votes: (p.votes || 0) + (res.voted ? 1 : -1), voted: res.voted }
             : p
         )
       );
@@ -126,7 +126,7 @@ export default function Home({ user }) {
   }
 
   if (tab === "starred" && user) {
-    filteredProjects = projects.filter(p => p.has_star);
+    filteredProjects = projects.filter(p => p.starred);
   }
 
   return (
