@@ -223,15 +223,15 @@ CSS variables defined in `index.css`:
 
 ```css
 :root[data-theme='dark'] {
-  --background: #000000;
-  --text-primary: #ffffff;
-  --shadow-color: rgba(255, 255, 255, 0.06);
+  --background: #0D1117;
+  --text-primary: #F0F6FC;
+  --shadow-color: rgba(45, 204, 255, 0.2);
 }
 
 :root[data-theme='light'] {
-  --background: #ffffff;
-  --text-primary: #111111;
-  --shadow-color: rgba(0, 0, 0, 0.2);
+  --background: #FDFDFD;
+  --text-primary: #111827;
+  --shadow-color: rgba(0, 140, 186, 0.25);
 }
 ```
 
